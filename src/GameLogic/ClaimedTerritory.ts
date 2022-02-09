@@ -89,8 +89,8 @@ export class ClaimedTerritory {
 
         let freePosPlusMoveDir = addCoord(pos, scanDirection.movingDirection)
         let ownTilePlusMoveDir = addCoord(freePosPlusMoveDir, scanDirection.edgeDirection)
-        let nextFreeTileId = this.checkTile(freePosPlusMoveDir)
-        let nextOwnTileId  = this.checkTile(ownTilePlusMoveDir)
+        let nextFreeTileId = this.checkTileID(freePosPlusMoveDir)
+        let nextOwnTileId  = this.checkTileID(ownTilePlusMoveDir)
         if (nextFreeTileId == id) {
             // inner corner so stop
             scanDirection.innerTurn()
@@ -127,7 +127,7 @@ export class ClaimedTerritory {
 
                 forAll(adjacentTiles, (adj:Coord) => {
                     let adjTile = addCoord(adj, tile)
-                    let territoryId = this.checkTile(adjTile)
+                    let territoryId = this.checkTileID(adjTile)
                     if (isNumber(territoryId) && territoryId != id) {
                         this.setTile(adjTile, id)
                         unexpanded.push(adjTile)
@@ -146,15 +146,6 @@ export class ClaimedTerritory {
         return filledTiles
     }
 
-    handleCache(pos:Coord, id:number) {
-        if (this.cachedIdCount[id] == undefined)
-            this.cachedIdCount[id] = 0
-
-        let oldId = this.checkTile(pos)
-        
-        this.cachedIdCount[oldId]--
-        this.cachedIdCount[id]++
-    }
 
     getClaimedTiles(id:number) {
         if (this.cachedIdCount[id] == undefined)
@@ -172,21 +163,39 @@ export class ClaimedTerritory {
     }
 
     setTile(pos:Coord, id:number) {
-        this.handleCache(pos, id)
+        if (this.cachedIdCount[id] == undefined)
+            this.cachedIdCount[id] = 0
+
+        let oldId = this.checkTileID(pos)
+        
+        
+
+        // TODO: 
+
+        
         this.territory.setValue(pos.x, pos.y, id)
+
+        let newId = this.checkTileID(pos)
+
+        this.cachedIdCount[oldId]--
+        this.cachedIdCount[newId]++
     }
 
     setTileXY(x:number, y:number, id:number) {
         this.setTile({x:x, y:y}, id)
     }
 
-    checkTile(pos:Coord):number {
+    // checkTile(pos:Coord):number {
+    //     return this.territory.checkValue(pos.x, pos.y)
+    // }
+
+    checkTileID(pos:Coord):number {
         return this.territory.checkValue(pos.x, pos.y)
     }
 
     getOtherTilesAround(inputPos:Coord, id:number) {
-        if (this.checkTile(inputPos) == id) {
-            return adjacentTiles.filter((pos) => this.checkTile(addCoord(inputPos, pos)) != id)
+        if (this.checkTileID(inputPos) == id) {
+            return adjacentTiles.filter((pos) => this.checkTileID(addCoord(inputPos, pos)) != id)
         } else return []
     }
 
